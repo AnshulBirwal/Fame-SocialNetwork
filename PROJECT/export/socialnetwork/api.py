@@ -122,7 +122,7 @@ def submit_post(
     _at_least_one_expertise_area_contains_bullshit, _expertise_areas = (
         post.determine_expertise_areas_and_truth_ratings()
     )
-    post.published = not _at_least_one_expertise_area_contains_bullshit
+    post.published = not _at_least_one_expertise_area_contains_bullshit #the first condition
 
     redirect_to_logout = False
 
@@ -130,6 +130,24 @@ def submit_post(
     #########################
     # add your code here
     #########################
+    #T1
+    #Change api.submit_post to not publish posts that have an expertise area which is contained in
+    #the user’s fame profile and marked negative there (independent of any truth rating determined by
+    #the magic AI for this post)
+
+    #the idea is for all expertise areas in the post (there are 2 of them normally) check if any of them is
+    #among user's negative areas. If yes, don't publish
+    _no_negative_areas = True
+    user, _fame_of_user = fame(user)          #fame function returns user and their fames (fame contains user, expertise_area and fame_level)
+    negative_fames = _fame_of_user.filter(fame_level__numeric_value__lt=0)
+    _negative_expertise_areas_of_user = [fame_entry.expertise_area for fame_entry in negative_fames]   #we are only interested in expertise areas from fames
+    _expertise_areas_without_levels = [entry['expertise_area'] for entry in _expertise_areas]          #from areas from post we also only choose areas
+    for area in _expertise_areas:
+        if area['expertise_area'] in _negative_expertise_areas_of_user:
+            _no_negative_areas = False
+
+    post.published = post.published and _no_negative_areas         #modified condition of publishing based on T1
+
 
     post.save()
 
