@@ -186,13 +186,6 @@ def submit_post(
                                          fame_level=FameLevels.objects.get(name='Confuser'))
 
                         _new_fame.save()
-
-
-
-
-
-
-
     post.save()
 
     return (
