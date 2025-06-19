@@ -146,9 +146,46 @@ def submit_post(
         if area['expertise_area'] in _negative_expertise_areas_of_user:
             _no_negative_areas = False
 
-    post.published = post.published and _no_negative_areas         #modified condition of publishing based on T1
+    post.published = post.published and _no_negative_areas  # modified condition of publishing based on T1
 
+        #T2 Change api.submit_post to adjust the fame profile of users if they submit a post with a negative
+    #truth rating, but only for the expertise area found for the post that has a negative truth rating:
+        #T2a If the expertise area is already contained in the user’s fame profile (with any fame level), lower
+    #the fame to the next possible level.
+        #T2b If the expertise area is not contained, simply add an entry in the user’s fame profile with fame
+    #level “Confuser” (hint: negative fame and take a look at famesocialnetwork/fakedata.py).
+        #T2c If you cannot lower the existing fame level for that expertise area any further, ban the user from
+    #the social network by setting the field is_active in model FameUsers to False disallowing
+    #him/her to ever login again, logging out the user if he or she is logged in, and unpublishing all
+    #his/her posts (without deleting them from the database)
 
+    #we need to lower the level only if at least one area is negative
+    if _at_least_one_expertise_area_contains_bullshit:
+        for area in _expertise_areas:
+            _truth_rating_of_area = area['truth_rating']
+            if _truth_rating_of_area: #if it is not none (aka if it is not unknown)
+                if area['truth_rating'].numeric_value<0:
+                    try:           #if the user already has this area in the profile
+                        _fame_to_update = Fame.objects.get(expertise_area=area['expertise_area'], user=post.author)   #getting the fame we need
+                        try:       #if possible to lower the level
+                            _new_fame_level = _fame_to_update.fame_level.get_next_lower_fame_level()
+                            _fame_to_update.fame_level = _new_fame_level
+
+                        except ValueError:    #if impossible to lower the level BAN (get_next_lower_fame_level() will raise the error)
+                            user.is_active=False
+                            user.save()
+                            redirect_to_logout=True
+                            #unpublish all the posts of the user without deleting from db:
+                            _posts_to_unpublish = Posts.objects.filter(author=user).update(published=False)
+
+                        _fame_to_update.save()
+
+                    except Fame.DoesNotExist:    #if the fame doesn't exist (the get method throws an exception)
+                        _new_fame = Fame(expertise_area=area['expertise_area'],
+                                         user=post.author,
+                                         fame_level=FameLevels.objects.get(name='Confuser'))
+
+                        _new_fame.save()
     post.save()
 
     return (
