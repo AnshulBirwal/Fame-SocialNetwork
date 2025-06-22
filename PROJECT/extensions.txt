@@ -1,7 +1,11 @@
 1. Raising fame levels
-With the given project description fame levels cannot go up, they can only either stay the same or decrease which makes it impossible to increase number of people in communitites. Our idea:
-Increase fame level of area A to the next level if user posts a post such that:
--the post doesn't contain bullshit in any of its areas;
--area A in the post has positive level AND is higher than the current fame level of the user in this area;
--post with this content is posted for the first time ever on this platform.
-These requirements ensure that people will not just copy their single successful post many times to get their fame level to the maximum and don't copy successful posts of other people with the same goal. Moreover, it would guarantee that a person can't get a fame level in an area higher than the highest truth rate among all their posts in this area (for example, if a person doesn't ever post anything with level Jedi, they will not get Jedi level in any area)
+With the given project description fame levels cannot go up, they can only either stay the same or decrease which makes it
+impossible to increase number of people in communities.
+Our idea is to add a counter that stores current numeric value of the user's fame level in each area:
+the number lies in the interval [numeric value of current fame level, numeric value of the next fame level).
+If the new post with this content is published for the first time ever on this platform, the numeric value of the current
+is added to the counter. If the new numeric value in the counter is equal to or greater than the next level's numeric value,
+change the level to the next one (unless the maximal level is already reached).
+When the level of the person is decreased, the counter is set exactly to the numeric value of the new level.
+Uniqueness of the posts that raise the fame level ensures that people don't just copy their single successful post many times
+to get their fame level to the maximum and don't copy successful posts of other people with the same goal.
