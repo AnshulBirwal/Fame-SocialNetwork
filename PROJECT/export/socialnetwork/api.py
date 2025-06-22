@@ -243,9 +243,45 @@ def bullshitters():
     users with the lowest fame are shown first, in case there is a tie, within that tie sort by date_joined
     (most recent first). Note that expertise areas with no expert may be omitted.
     """
-    pass
     #########################
     # add your code here
+
+    result = {}
+
+    # Filter Fame entries with negative fame levels
+    negative_fames = (
+        Fame.objects
+        .select_related('user', 'fame_level', 'expertise_area')
+        .filter(fame_level__numeric_value__lt=0)
+    )
+
+    # GROUP BY expertise area
+    for fame_entry in negative_fames:
+        user = fame_entry.user
+        area = fame_entry.expertise_area
+        fame_value = fame_entry.fame_level.numeric_value
+
+            #add all the keys (expertise areas) to the list if not already present + append user ect.
+        if area not in result: # this would be nicer (without if check) using defaultdict(list) but I'm not sure if we can import stuff ?
+            result[area] = []
+
+        result[area].append({
+            "user": user,
+            "fame_level_numeric": fame_value,
+            "date_joined": user.date_joined
+        })
+
+    # Sort each list by fame_level_numeric ASC, then date_joined DESC
+    for area in result:
+        result[area].sort(
+            key=lambda x: (x["fame_level_numeric"], -x["date_joined"].timestamp())
+        )
+
+        # Remove date_joined (used only for sorting) like a SELECT user, fame_level_numeric
+        for entry in result[area]:
+            del entry["date_joined"]
+
+    return result
     #########################
 
 
