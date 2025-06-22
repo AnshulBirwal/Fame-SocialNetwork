@@ -1,0 +1,7 @@
+1. Raising fame levels
+With the given project description fame levels cannot go up, they can only either stay the same or decrease which makes it impossible to increase number of people in communitites. Our idea:
+Increase fame level of area A to the next level if user posts a post such that:
+-the post doesn't contain bullshit in any of its areas;
+-area A in the post has positive level AND is higher than the current fame level of the user in this area;
+-post with this content is posted for the first time ever on this platform.
+These requirements ensure that people will not just copy their single successful post many times to get their fame level to the maximum and don't copy successful posts of other people with the same goal. Moreover, it would guarantee that a person can't get a fame level in an area higher than the highest truth rate among all their posts in this area (for example, if a person doesn't ever post anything with level Jedi, they will not get Jedi level in any area)
