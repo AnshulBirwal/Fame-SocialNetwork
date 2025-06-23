@@ -22,18 +22,26 @@ def timeline(request):
 
 
     is_community_mode = request.session['community_mode']  #read mode from session
+    communities_joined = []
     available_communities_not_joined = [] # by default empty. Stays empty in standard mode,
                                           # will be appended in community mode
-    if is_community_mode: #getting communities to show for both modes
-        communities_joined_to_show = list(user.communities.all().values_list("label", flat=True))
+    if is_community_mode:
+        communities_joined = list(user.communities.all().values_list("label", flat=True).distinct())
 
-        eligible_communities = (Fame.objects.filter(user=user, fame_level__numeric_value__gte=100). all()
-                                .values_list("expertise_area", flat=True)) #100 is super pro
-        for potential_community in eligible_communities:
-            if potential_community not in communities_joined_to_show:
-                available_communities_not_joined.append(potential_community)
-    else:
-        communities_joined_to_show = [] #user.communities.none().values_list("label") #empty, because none()
+
+        #this will be a list of IDs(!) of corresponding expertise areas
+        eligible_communities_area_ids = list(Fame.objects.filter(user=user, fame_level__numeric_value__gte=100).all()
+                                .values_list("expertise_area_id", flat=True).distinct()) #100 is super pro
+
+        #now again we want a list with labels instead of IDs
+        for potential_community_area_id in eligible_communities_area_ids:
+            potential_community_name = (ExpertiseAreas.objects.filter(expertiseareas=potential_community_area_id)
+                                        .values_list("label", flat=True).first()) #first element of the queryset (and the only one)
+            if (potential_community_name not in communities_joined
+                    and potential_community_name not in available_communities_not_joined): #we don't want the same community twice
+                    available_communities_not_joined.append(potential_community_name)
+
+
 
     # get extra URL parameters:
     keyword = request.GET.get("search", "")
@@ -43,7 +51,7 @@ def timeline(request):
     # if keyword is not empty, use search method of API:
     if keyword and keyword != "":
         context = {
-            "communities_joined": communities_joined_to_show,
+            "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
                 api.search(keyword, published=published), many=True
@@ -54,7 +62,7 @@ def timeline(request):
         }
     else:  # otherwise, use timeline method of API:
         context = {
-            "communities_joined": communities_joined_to_show,
+            "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
                 api.timeline(
@@ -108,18 +116,18 @@ def toggle_community_mode(request):
 @require_http_methods(["POST"])
 @login_required
 def join_community(request):
-    com = request.POST.get("community")
-    community = ExpertiseAreas.objects.get(label=com)
-    user = SocialNetworkUsers.objects.get(user=request.user)
+    community_name = request.POST.get("community")
+    community = ExpertiseAreas.objects.get(label=community_name)
+    user = _get_social_network_user(request.user)
     api.join_community(user, community)
     return redirect(reverse("sn:timeline"))
 
 @require_http_methods(["POST"])
 @login_required
 def leave_community(request):
-    com=request.POST.get("community")
-    community = ExpertiseAreas.objects.get(label = com)
-    user = SocialNetworkUsers.objects.get(user = request.user)
+    community_name=request.POST.get("community")
+    community = ExpertiseAreas.objects.get(label = community_name)
+    user = _get_social_network_user(request.user)
     api.leave_community(user, community)
     return redirect(reverse("sn:timeline"))
 

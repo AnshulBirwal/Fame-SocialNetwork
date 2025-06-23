@@ -290,27 +290,21 @@ def bullshitters():
 
 
 
-
+#T4
 def join_community(user: SocialNetworkUsers, community: ExpertiseAreas):
     """Join a specified community. Note that this method does not check whether the user is eligible for joining the
     community.
     """
     user.communities.add(community) # could also be community.community_members.add(user) (related_name) since it's anytomany so changing either side works
-    #########################
-    # add your code here
-    #########################
 
 
 
 def leave_community(user: SocialNetworkUsers, community: ExpertiseAreas):
     """Leave a specified community."""
     user.communities.remove(community)
-    #########################
-    # add your code here
-    #########################
 
 
-
+#T5
 def similar_users(user: SocialNetworkUsers):
     """Compute the similarity of user with all other users. The method returns a QuerySet of FameUsers annotated
     with an additional field 'similarity'. Sort the result in descending order according to 'similarity', in case

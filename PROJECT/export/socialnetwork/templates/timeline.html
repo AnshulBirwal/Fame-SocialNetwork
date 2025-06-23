@@ -19,7 +19,7 @@
             </button>
         </form>
     </div>
-    <!-- already given code -->
+
     <br>
     <div class="card"
          style="margin-bottom: 20px; border-color: white; width: 300px; margin-left: auto; margin-right: 40px;">
@@ -41,24 +41,35 @@
     <br>
     <br>
     <h3 style="margin-left: 40px">Timeline</h3>
+
+    <!-- Button to leave a community -->
+    <h5 style="margin-left: 40px">My communities:</h5>
     {% for community in communities_joined %}
-        <pre>{{ community|pprint }}</pre>
-        <p>{{ community }}</p>
-        <form action="/sn/html/leave_community" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="community" value="{{ community }}">
-            <button type="submit" class="btn btn-secondary" style="background-color:red">Leave</button>
-        </form>
+    <form action="/sn/html/leave_community" method="post" style="display: inline;"> <!-- inline - in the same line -->
+        {% csrf_token %}
+        <input type="hidden" name="community" value="{{ community }}">
+        <div class="d-flex align-items-center mb-2">
+            <button type="submit" class="btn btn-secondary me-2" style="background-color:red; margin-left: 40px">Leave</button>
+            <span>{{ community }}</span>
+        </div>
+    </form>
     {% endfor %}
+
+    <!-- Button to join a community -->
+    <br>
+    <h5 style="margin-left: 40px">Communities I can join:</h5>
     {% for community in available_communities_not_joined %}
-        <pre>{{ community|pprint }}</pre>
-        <p>{{ community }}</p>
-        <form action="/sn/html/join_community" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="community" value="{{ community }}">
-            <button type="submit" class="btn btn-secondary" style="background-color:green">Join</button>
-        </form>
+    <form action="/sn/html/join_community" method="post" style="display: inline;"> <!-- inline - in the same line -->
+        {% csrf_token %}
+        <input type="hidden" name="community" value="{{ community }}">
+        <div class="d-flex align-items-center mb-2">
+            <button type="submit" class="btn btn-secondary me-2" style="background-color:green; margin-left: 40px">Join</button>
+            <span>{{ community }}</span>
+        </div>
+    </form>
     {% endfor %}
+    <br>
+
     {% for post in posts %}
         <div class="card"
              style="margin-bottom: 20px; margin-left: 40px; margin-right: 40px; background-color: {% if post.published %}white{% else %}mistyrose{% endif %};">
