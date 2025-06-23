@@ -295,7 +295,7 @@ def join_community(user: SocialNetworkUsers, community: ExpertiseAreas):
     """Join a specified community. Note that this method does not check whether the user is eligible for joining the
     community.
     """
-    pass
+    user.communities.add(community) # could also be community.community_members.add(user) (related_name) since it's anytomany so changing either side works
     #########################
     # add your code here
     #########################
@@ -304,7 +304,7 @@ def join_community(user: SocialNetworkUsers, community: ExpertiseAreas):
 
 def leave_community(user: SocialNetworkUsers, community: ExpertiseAreas):
     """Leave a specified community."""
-    pass
+    user.communities.remove(community)
     #########################
     # add your code here
     #########################
