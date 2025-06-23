@@ -100,10 +100,10 @@ def unfollow(user: SocialNetworkUsers, user_to_unfollow: SocialNetworkUsers):
 
 
 def submit_post(
-    user: SocialNetworkUsers,
-    content: str,
-    cites: Posts = None,
-    replies_to: Posts = None,
+    user: SocialNetworkUsers, #users is a variable and has a type SocialNetworkUsers
+    content: str, #content is a variable and has a type string
+    cites: Posts = None,  #cites is a variable and has a type Posts with a default value None
+    replies_to: Posts = None, #replies_to is a variable and has a type Posts with a default value None
 ):
     """Submit a post for publication. Assumes that the user is authenticated.
     returns a tuple of three elements:
