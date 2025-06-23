@@ -7,18 +7,32 @@ from socialnetwork import api
 from socialnetwork.api import _get_social_network_user
 from socialnetwork.models import SocialNetworkUsers
 from socialnetwork.serializers import PostsSerializer
+from fame.models import Fame
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 @login_required
 def timeline(request):
     # using the serializer to get the data, then use JSON in the template!
     # avoids having to do the same thing twice
-
+    user=_get_social_network_user(request.user)
     # initialize community mode to False the first time in the session
     if 'community_mode' not in request.session:
         request.session['community_mode'] = False
 
+
+    is_community_mode = request.session['community_mode']  #read mode from session
+    available_communities_not_joined = [] # by default empty. Stays empty in standard mode,
+                                          # will be appended in community mode
+    if is_community_mode: #getting communities to show for both modes
+        communities_joined_to_show = user.communities.all().values()
+
+        eligible_communities = Fame.objects.filter(user=user, fame_level__numeric_value__gte=100) #100 is Super Pro
+        for potential_community in eligible_communities:
+            if potential_community not in communities_joined_to_show:
+                available_communities_not_joined.append(potential_community)
+    else:
+        communities_joined_to_show = user.communities.none().values() #empty, because none()
 
     # get extra URL parameters:
     keyword = request.GET.get("search", "")
@@ -28,30 +42,33 @@ def timeline(request):
     # if keyword is not empty, use search method of API:
     if keyword and keyword != "":
         context = {
+            "communities_joined": communities_joined_to_show,
+            "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
                 api.search(keyword, published=published), many=True
-            ).data,
+            ).data, #so far I am not changing it
             "searchkeyword": keyword,
             "error": error,
-            "followers": list(api.follows(_get_social_network_user(request.user)).values_list('id', flat=True)),
+            "followers": list(api.follows(user).values_list('id', flat=True)),
         }
     else:  # otherwise, use timeline method of API:
-
         context = {
+            "communities_joined": communities_joined_to_show,
+            "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
                 api.timeline(
-                    _get_social_network_user(request.user),
+                    user,
                     published=published,
+                    community_mode=is_community_mode #added this line for toggling mode
                 ),
                 many=True,
             ).data,
+
             "searchkeyword": "",
             "error": error,
-            "followers": list(api.follows(_get_social_network_user(request.user)).values_list('id', flat=True)),
+            "followers": list(api.follows(user).values_list('id', flat=True)),
         }
-
     return render(request, "timeline.html", context=context)
-
 
 @require_http_methods(["POST"])
 @login_required
@@ -71,15 +88,21 @@ def unfollow(request):
     return redirect(reverse("sn:timeline"))
 
 
+#T6
 @require_http_methods(["GET"])
 @login_required
 def bullshitters(request):
     raise NotImplementedError("Not implemented yet")
 
+
+#T7
 @require_http_methods(["POST"])
 @login_required
 def toggle_community_mode(request):
-    raise NotImplementedError("Not implemented yet")
+    current = request.session.get("community_mode", False) #false is default
+    request.session["community_mode"] = not current
+    return redirect(reverse("sn:timeline"))  # redirect back to timeline after toggling
+
 
 @require_http_methods(["POST"])
 @login_required
@@ -91,6 +114,8 @@ def join_community(request):
 def leave_community(request):
     raise NotImplementedError("Not implemented yet")
 
+
+#T8
 @require_http_methods(["GET"])
 @login_required
 def similar_users(request):

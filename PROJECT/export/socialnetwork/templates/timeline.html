@@ -6,7 +6,20 @@
 {% block title %}Timeline{% endblock %}
 
 {% block body %}
-
+    <!-- button to change the mode -->
+    <div style="margin: 20px;">
+        <form action="/sn/html/toggle_community_mode" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                {% if request.session.community_mode %}
+                    Switch to Normal Mode
+                {% else %}
+                    Switch to Community Mode
+                {% endif %}
+            </button>
+        </form>
+    </div>
+    <!-- already given code -->
     <br>
     <div class="card"
          style="margin-bottom: 20px; border-color: white; width: 300px; margin-left: auto; margin-right: 40px;">
@@ -28,6 +41,19 @@
     <br>
     <br>
     <h3 style="margin-left: 40px">Timeline</h3>
+    {% for community in communities_joined %}
+        <p>{{ community.label }}</p>
+        <form action="/sn/html/leave_community" method="post">
+            <button type="submit" class="btn btn-secondary" style="background-color:red">Leave</button>
+        </form>
+    {% endfor %}
+    {% for community in available_communities_not_joined %}
+        <p>{{ community.label }}</p>
+        <form action="/sn/html/join_community" method="post">
+            <button type="submit" class="btn btn-secondary" style="background-color:green">Join</button>
+        </form>
+
+    {% endfor %}
     {% for post in posts %}
         <div class="card"
              style="margin-bottom: 20px; margin-left: 40px; margin-right: 40px; background-color: {% if post.published %}white{% else %}mistyrose{% endif %};">

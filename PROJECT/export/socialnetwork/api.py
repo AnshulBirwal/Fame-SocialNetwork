@@ -33,6 +33,9 @@ def timeline(user: SocialNetworkUsers, start: int = 0, end: int = None, publishe
         # add your code here
         #########################
 
+        #_communities_of_user = user.communities # 2. the user is a member of the community
+
+
     else:
         # in standard mode, posts of followed users are displayed
         _follows = user.follows.all()
