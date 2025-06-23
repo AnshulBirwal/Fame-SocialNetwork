@@ -28,7 +28,7 @@ def timeline(user: SocialNetworkUsers, start: int = 0, end: int = None, publishe
         # 3. the post contains the community’s expertise area
         # 4. the post is published or the user is the author
 
-        pass
+        posts=[] #temporary line just to get rid of the error!!!
         #########################
         # add your code here
         #########################

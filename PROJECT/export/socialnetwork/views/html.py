@@ -7,7 +7,7 @@ from socialnetwork import api
 from socialnetwork.api import _get_social_network_user
 from socialnetwork.models import SocialNetworkUsers
 from socialnetwork.serializers import PostsSerializer
-from fame.models import Fame
+from fame.models import Fame, ExpertiseAreas
 
 
 @require_http_methods(["GET", "POST"])
@@ -25,14 +25,15 @@ def timeline(request):
     available_communities_not_joined = [] # by default empty. Stays empty in standard mode,
                                           # will be appended in community mode
     if is_community_mode: #getting communities to show for both modes
-        communities_joined_to_show = user.communities.all().values()
+        communities_joined_to_show = list(user.communities.all().values_list("label", flat=True))
 
-        eligible_communities = Fame.objects.filter(user=user, fame_level__numeric_value__gte=100) #100 is Super Pro
+        eligible_communities = (Fame.objects.filter(user=user, fame_level__numeric_value__gte=100). all()
+                                .values_list("expertise_area", flat=True)) #100 is super pro
         for potential_community in eligible_communities:
             if potential_community not in communities_joined_to_show:
                 available_communities_not_joined.append(potential_community)
     else:
-        communities_joined_to_show = user.communities.none().values() #empty, because none()
+        communities_joined_to_show = [] #user.communities.none().values_list("label") #empty, because none()
 
     # get extra URL parameters:
     keyword = request.GET.get("search", "")
@@ -59,7 +60,7 @@ def timeline(request):
                 api.timeline(
                     user,
                     published=published,
-                    community_mode=is_community_mode #added this line for toggling mode
+                    community_mode=is_community_mode
                 ),
                 many=True,
             ).data,
@@ -107,12 +108,21 @@ def toggle_community_mode(request):
 @require_http_methods(["POST"])
 @login_required
 def join_community(request):
-    raise NotImplementedError("Not implemented yet")
+    com = request.POST.get("community")
+    community = ExpertiseAreas.objects.get(label=com)
+    user = SocialNetworkUsers.objects.get(user=request.user)
+    api.join_community(user, community)
+    return redirect(reverse("sn:timeline"))
 
 @require_http_methods(["POST"])
 @login_required
 def leave_community(request):
-    raise NotImplementedError("Not implemented yet")
+    com=request.POST.get("community")
+    community = ExpertiseAreas.objects.get(label = com)
+    user = SocialNetworkUsers.objects.get(user = request.user)
+    api.leave_community(user, community)
+    return redirect(reverse("sn:timeline"))
+
 
 
 #T8
