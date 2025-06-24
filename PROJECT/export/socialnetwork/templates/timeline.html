@@ -42,8 +42,11 @@
     <br>
     <h3 style="margin-left: 40px">Timeline</h3>
 
-    <!-- Button to leave a community -->
+    <!-- Part that is only for community mode -->
+    {% if request.session.community_mode %}
+        <!-- Button to leave a community -->
     <h5 style="margin-left: 40px">My communities:</h5>
+
     {% for community in communities_joined %}
     <form action="/sn/html/leave_community" method="post" style="display: inline;"> <!-- inline - in the same line -->
         {% csrf_token %}
@@ -57,7 +60,9 @@
 
     <!-- Button to join a community -->
     <br>
+
     <h5 style="margin-left: 40px">Communities I can join:</h5>
+
     {% for community in available_communities_not_joined %}
     <form action="/sn/html/join_community" method="post" style="display: inline;"> <!-- inline - in the same line -->
         {% csrf_token %}
@@ -69,6 +74,8 @@
     </form>
     {% endfor %}
     <br>
+    {% endif %}
+
 
     {% for post in posts %}
         <div class="card"

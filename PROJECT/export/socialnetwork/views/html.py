@@ -23,8 +23,7 @@ def timeline(request):
 
     is_community_mode = request.session['community_mode']  #read mode from session
     communities_joined = []
-    available_communities_not_joined = [] # by default empty. Stays empty in standard mode,
-                                          # will be appended in community mode
+    available_communities_not_joined = [] # by default empty
     if is_community_mode:
         communities_joined = list(user.communities.all().values_list("label", flat=True).distinct())
 
@@ -37,10 +36,15 @@ def timeline(request):
         for potential_community_area_id in eligible_communities_area_ids:
             potential_community_name = (ExpertiseAreas.objects.filter(expertiseareas=potential_community_area_id)
                                         .values_list("label", flat=True).first()) #first element of the queryset (and the only one)
+            #expertiseareas is an automatically generated field, because it's foreign key in communities
+
             if (potential_community_name not in communities_joined
                     and potential_community_name not in available_communities_not_joined): #we don't want the same community twice
                     available_communities_not_joined.append(potential_community_name)
-
+    #if standard mode, the communities lists will stay empty.
+    #We could still fill them with respective communities because we built timeline.html the way
+    #sthat it doesn't show the communittes in standard mode
+    #but for performance it will be better not to fill the communities in standard mode
 
 
     # get extra URL parameters:
