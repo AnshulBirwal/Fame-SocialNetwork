@@ -28,12 +28,28 @@ def timeline(user: SocialNetworkUsers, start: int = 0, end: int = None, publishe
         # 3. the post contains the community’s expertise area
         # 4. the post is published or the user is the author
 
-        posts=[] #temporary line just to get rid of the error!!!
-        #########################
-        # add your code here
-        #########################
+        posts = Posts.objects.none() #empty query set - default
+        # 2. the user is a member of the community
+        _communities_of_user = user.communities.values()
 
-        #_communities_of_user = user.communities # 2. the user is a member of the community
+        #we will iterate through each community of the user
+        for community in _communities_of_user:
+            #we will create a condition (Q object) for each criteria and then unite them
+            # 1. the author of the post is a member of the community
+            author_in_community=Q(author__communities=community['id'])
+
+            # 3. the post contains the community’s expertise area
+            has_correct_areas=Q(expertise_area_and_truth_ratings__expertiseareas=community['id'])
+
+            # 4. the post is published or the user is the author
+            published_or_by_this_user = (Q(published=True) | Q(author=user))
+            _valid_posts_for_community = Posts.objects.filter(
+                author_in_community & has_correct_areas & published_or_by_this_user
+            )
+
+            posts = posts.union(_valid_posts_for_community) #like append but for queryset
+
+        posts = posts.order_by("-submitted")
 
 
     else:
