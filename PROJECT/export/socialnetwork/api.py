@@ -141,6 +141,7 @@ def submit_post(
 
     # classify the content into expertise areas:
     # only publish the post if none of the expertise areas contains bullshit:
+    #_at_least_one_expertise_area_contains_bullshit is a boolean flag indicating if AI flagged any of the posts topic as bullshit
     _at_least_one_expertise_area_contains_bullshit, _expertise_areas = (
         post.determine_expertise_areas_and_truth_ratings()
     )
@@ -161,9 +162,15 @@ def submit_post(
     #among user's negative areas. If yes, don't publish
     _no_negative_areas = True
     user, _fame_of_user = fame(user)          #fame function returns user and their fames (fame contains user, expertise_area and fame_level)
-    negative_fames = _fame_of_user.filter(fame_level__numeric_value__lt=0)
+                                       #_fame_of_user here stores the QuerySet of all Fame rows belonging to that user
+    negative_fames = _fame_of_user.filter(fame_level__numeric_value__lt=0)  #fame_level is a table
+                                                                       #numeric_value is an attribute of fame level
+                                                                       #lt=0 is the selection condition
+                                       #negative_fame has an instance/object of fame with all the fields
     _negative_expertise_areas_of_user = [fame_entry.expertise_area for fame_entry in negative_fames]   #we are only interested in expertise areas from fames
+                                    # _negative_expertise_areas_of_user is a list of expertise areas in which the user currently has negative fame
     _expertise_areas_without_levels = [entry['expertise_area'] for entry in _expertise_areas]          #from areas from post we also only choose areas
+                                      #entry is a loop variable
     for area in _expertise_areas:
         if area['expertise_area'] in _negative_expertise_areas_of_user:
             _no_negative_areas = False
