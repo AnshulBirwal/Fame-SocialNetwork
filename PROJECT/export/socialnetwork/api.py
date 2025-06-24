@@ -28,27 +28,31 @@ def timeline(user: SocialNetworkUsers, start: int = 0, end: int = None, publishe
         # 3. the post contains the community’s expertise area
         # 4. the post is published or the user is the author
 
-        posts = Posts.objects.none() #empty query set - default
+        #posts = Posts.objects.none() #empty query set - default
+        posts_ids = set()
         # 2. the user is a member of the community
-        _communities_of_user = user.communities.values()
+        _communities_of_user = user.communities.all()
 
         #we will iterate through each community of the user
         for community in _communities_of_user:
             #we will create a condition (Q object) for each criteria and then unite them
             # 1. the author of the post is a member of the community
-            author_in_community=Q(author__communities=community['id'])
+            author_in_community=Q(author__communities=community)
 
             # 3. the post contains the community’s expertise area
-            has_correct_areas=Q(expertise_area_and_truth_ratings__expertiseareas=community['id'])
+            has_correct_areas=Q(expertise_area_and_truth_ratings__expertiseareas=community)
 
             # 4. the post is published or the user is the author
             published_or_by_this_user = (Q(published=True) | Q(author=user))
+
             _valid_posts_for_community = Posts.objects.filter(
                 author_in_community & has_correct_areas & published_or_by_this_user
-            )
+            ).values_list("id", flat=True).distinct()
 
-            posts = posts.union(_valid_posts_for_community) #like append but for queryset
+            posts_ids.update(_valid_posts_for_community)
 
+        #we found ids of valid posts, now we turn this set of ids into a queryset with corresponding posts
+        posts = Posts.objects.filter(id__in=posts_ids).order_by("-submitted")
         posts = posts.order_by("-submitted")
 
 
@@ -149,10 +153,10 @@ def submit_post(
     #########################
     # add your code here
     #########################
-    #T1
-    #Change api.submit_post to not publish posts that have an expertise area which is contained in
-    #the user’s fame profile and marked negative there (independent of any truth rating determined by
-    #the magic AI for this post)
+    '''T1
+    Change api.submit_post to not publish posts that have an expertise area which is contained in
+    the user’s fame profile and marked negative there (independent of any truth rating determined by
+    the magic AI for this post)'''
 
     #the idea is for all expertise areas in the post (there are 2 of them normally) check if any of them is
     #among user's negative areas. If yes, don't publish
@@ -167,16 +171,21 @@ def submit_post(
 
     post.published = post.published and _no_negative_areas  # modified condition of publishing based on T1
 
-        #T2 Change api.submit_post to adjust the fame profile of users if they submit a post with a negative
-    #truth rating, but only for the expertise area found for the post that has a negative truth rating:
-        #T2a If the expertise area is already contained in the user’s fame profile (with any fame level), lower
-    #the fame to the next possible level.
-        #T2b If the expertise area is not contained, simply add an entry in the user’s fame profile with fame
-    #level “Confuser” (hint: negative fame and take a look at famesocialnetwork/fakedata.py).
-        #T2c If you cannot lower the existing fame level for that expertise area any further, ban the user from
-    #the social network by setting the field is_active in model FameUsers to False disallowing
-    #him/her to ever login again, logging out the user if he or she is logged in, and unpublishing all
-    #his/her posts (without deleting them from the database)
+    """
+    T2 Change api.submit_post to adjust the fame profile of users if they submit a post with a negative
+    truth rating, but only for the expertise area found for the post that has a negative truth rating:
+
+        T2a If the expertise area is already contained in the user’s fame profile (with any fame level), lower
+        the fame to the next possible level.
+
+        T2b If the expertise area is not contained, simply add an entry in the user’s fame profile with fame
+        level “Confuser” (hint: negative fame and take a look at famesocialnetwork/fakedata.py).
+
+        T2c If you cannot lower the existing fame level for that expertise area any further, ban the user from
+        the social network by setting the field is_active in model FameUsers to False disallowing
+        him/her to ever login again, logging out the user if he or she is logged in, and unpublishing all
+        his/her posts (without deleting them from the database)
+    """
 
     #we need to lower the level only if at least one area is negative
     if _at_least_one_expertise_area_contains_bullshit:

@@ -27,14 +27,13 @@ def timeline(request):
     if is_community_mode:
         communities_joined = list(user.communities.all().values_list("label", flat=True).distinct())
 
-
         #this will be a list of IDs(!) of corresponding expertise areas
         eligible_communities_area_ids = list(Fame.objects.filter(user=user, fame_level__numeric_value__gte=100).all()
                                 .values_list("expertise_area_id", flat=True).distinct()) #100 is super pro
 
         #now again we want a list with labels instead of IDs
         for potential_community_area_id in eligible_communities_area_ids:
-            potential_community_name = (ExpertiseAreas.objects.filter(expertiseareas=potential_community_area_id)
+            potential_community_name = (ExpertiseAreas.objects.filter(id=potential_community_area_id)
                                         .values_list("label", flat=True).first()) #first element of the queryset (and the only one)
             #expertiseareas is an automatically generated field, because it's foreign key in communities
 
@@ -43,7 +42,7 @@ def timeline(request):
                     available_communities_not_joined.append(potential_community_name)
     #if standard mode, the communities lists will stay empty.
     #We could still fill them with respective communities because we built timeline.html the way
-    #sthat it doesn't show the communittes in standard mode
+    #sthat it doesn't show the communities in standard mode
     #but for performance it will be better not to fill the communities in standard mode
 
 
