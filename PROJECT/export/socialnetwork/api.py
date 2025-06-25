@@ -195,7 +195,7 @@ def submit_post(
 
     #we need to lower the level only if at least one area is negative
     if _at_least_one_expertise_area_contains_bullshit:
-        for area in _expertise_areas:
+        for area in _expertise_areas: #area is kind of a key:value of ex
             _truth_rating_of_area = area['truth_rating']
             if _truth_rating_of_area: #if it is not none (aka if it is not unknown)
                 if area['truth_rating'].numeric_value<0:
@@ -205,22 +205,22 @@ def submit_post(
                             _new_fame_level = _fame_to_update.fame_level.get_next_lower_fame_level()
                             _fame_to_update.fame_level = _new_fame_level
 
-                        except ValueError:    #if impossible to lower the level BAN (get_next_lower_fame_level() will raise the error)
+                        except ValueError:    #if impossible to lower the level BAN (since get_next_lower_fame_level() will raise the error)
                             user.is_active=False
                             user.save()
                             redirect_to_logout=True
                             #unpublish all the posts of the user without deleting from db:
                             _posts_to_unpublish = Posts.objects.filter(author=user).update(published=False)
 
-                        _fame_to_update.save()
+                        _fame_to_update.save() #saving these changes to the fame of the user
 
-                    except Fame.DoesNotExist:    #if the fame doesn't exist (the get method throws an exception)
-                        _new_fame = Fame(expertise_area=area['expertise_area'],
+                    except Fame.DoesNotExist:    #if the fame doesn't exist/ user does not have this area (the get method throws an exception)
+                        _new_fame = Fame.objects.create(expertise_area=area['expertise_area'], #constructor creating a new fame object #1. expertise area = constructor 2. expertise area = post
                                          user=post.author,
                                          fame_level=FameLevels.objects.get(name='Confuser'))
 
-                        _new_fame.save()
-    post.save()
+                        _new_fame.save()  #saving the changes made to fame of the particular expertise area of the user
+    post.save()   #saving the changes made to the post
 
     return (
         {"published": post.published, "id": post.id},
@@ -285,7 +285,7 @@ def bullshitters():
     # Filter Fame entries with negative fame levels
     negative_fames = (
         Fame.objects
-        .select_related('user', 'fame_level', 'expertise_area')
+        #.select_related('user', 'fame_level', 'expertise_area') #joins the related tables (user, fame_level, expertise_area)
         .filter(fame_level__numeric_value__lt=0)
     )
 
@@ -296,8 +296,9 @@ def bullshitters():
         fame_value = fame_entry.fame_level.numeric_value
 
             #add all the keys (expertise areas) to the list if not already present + append user ect.
-        if area not in result: # this would be nicer (without if check) using defaultdict(list) but I'm not sure if we can import stuff ?
-            result[area] = []
+        if area not in result: #if the area was not in result then
+            result[area] = [] #initialize the list of bullshitters in this area with empty list
+
 
         result[area].append({
             "user": user,
