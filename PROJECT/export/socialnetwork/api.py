@@ -28,27 +28,35 @@ def timeline(user: SocialNetworkUsers, start: int = 0, end: int = None, publishe
         # 3. the post contains the community’s expertise area
         # 4. the post is published or the user is the author
 
-        posts_ids = set()
+        posts_ids = set() #initializing posts_ids with an empty set
         # 2. the user is a member of the community
-        _communities_of_user = user.communities.all()
+        _communities_of_user = user.communities.all()  #getting all the communities of the user and storing it in _communities_of_user
 
         #we will iterate through each community of the user
-        for community in _communities_of_user:
+        for community in _communities_of_user: #iterating over _communities_of_user
             #we will create a condition (Q object) for each criterion and then unite them
             # 1. the author of the post is a member of the community
-            author_in_community=Q(author__communities=community)
+            #author is a column user, go there and access the communities
+            #add all the communities equal to community to Q
+            #Q is like a data structure which helps us to craete objects out of our condition
+            #alll the red words below come from posts
+            author_in_community = Q(author__communities=community)
 
             # 3. the post contains the community’s expertise area
+            #taking the expertise_area_and_truth_ratings from the post and comparing it against community
             has_correct_areas=Q(expertise_area_and_truth_ratings=community)
 
             # 4. the post is published or the user is the author
+            #or i.e. | can only be used on Q objects
             published_or_by_this_user = Q(Q(published=True) | Q(author=user))
 
-            _valid_posts_for_community = Posts.objects.filter(
+            _valid_posts_for_community = (Posts.objects.filter(
                 author_in_community & has_correct_areas & published_or_by_this_user
-            ).values_list("id", flat=True).distinct()
+            ) #until this point it is a query set with post fields
+            .values_list("id", flat=True) #this creates a list of ids out of it
+            .distinct())
 
-            posts_ids.update(_valid_posts_for_community)
+            posts_ids.update(_valid_posts_for_community) #updating the empty set with our id list result
 
         #we found ids of valid posts, now we turn this set of ids into a queryset with corresponding posts
         posts = Posts.objects.filter(id__in=posts_ids).order_by("-submitted")
@@ -195,6 +203,7 @@ def submit_post(
 
     #we need to lower the level only if at least one area is negative
     if _at_least_one_expertise_area_contains_bullshit:
+        #_at_least_super_pro = FameLevels.objects.get(name='Super Pro')
         for area in _expertise_areas: #area is kind of a key:value of ex
             _truth_rating_of_area = area['truth_rating']
             if _truth_rating_of_area: #if it is not none (aka if it is not unknown)
@@ -204,6 +213,11 @@ def submit_post(
                         try:       #if possible to lower the level
                             _new_fame_level = _fame_to_update.fame_level.get_next_lower_fame_level()
                             _fame_to_update.fame_level = _new_fame_level
+
+                            super_pro = FameLevels.objects.get(name="Super Pro")  #getting the value of Super Pro in a variable
+                            if _new_fame_level.numeric_value < super_pro.numeric_value: #if the _new_fame_level is smaller than Super Pro
+                                user.communities.remove(area['expertise_area'])   #remove the user from the community
+
 
                         except ValueError:    #if impossible to lower the level BAN (since get_next_lower_fame_level() will raise the error)
                             user.is_active=False
@@ -220,6 +234,10 @@ def submit_post(
                                          fame_level=FameLevels.objects.get(name='Confuser'))
 
                         _new_fame.save()  #saving the changes made to fame of the particular expertise area of the user
+
+
+
+
     post.save()   #saving the changes made to the post
 
     return (
@@ -287,6 +305,7 @@ def bullshitters():
         Fame.objects
         #.select_related('user', 'fame_level', 'expertise_area') #joins the related tables (user, fame_level, expertise_area)
         .filter(fame_level__numeric_value__lt=0)
+
     )
 
     # GROUP BY expertise area
@@ -328,12 +347,13 @@ def join_community(user: SocialNetworkUsers, community: ExpertiseAreas):
     community.
     """
     user.communities.add(community) # could also be community.community_members.add(user) (related_name) since it's anytomany so changing either side works
+    #add community in user
 
 
 
 def leave_community(user: SocialNetworkUsers, community: ExpertiseAreas):
     """Leave a specified community."""
-    user.communities.remove(community)
+    user.communities.remove(community) #remove community from user
 
 
 #T5
