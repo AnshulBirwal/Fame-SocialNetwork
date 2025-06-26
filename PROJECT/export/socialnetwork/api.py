@@ -288,6 +288,7 @@ def fame(user: SocialNetworkUsers):
     return user, Fame.objects.filter(user=user)
 
 
+
 def bullshitters():
     """Return a Python dictionary mapping each existing expertise area in the fame profiles to a list of the users
     having negative fame for that expertise area. Each list should contain Python dictionaries as entries with keys
