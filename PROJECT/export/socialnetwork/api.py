@@ -362,8 +362,64 @@ def similar_users(user: SocialNetworkUsers):
     """Compute the similarity of user with all other users. The method returns a QuerySet of FameUsers annotated
     with an additional field 'similarity'. Sort the result in descending order according to 'similarity', in case
     there is a tie, within that tie sort by date_joined (most recent first)"""
-    pass
+    #pass
     #########################
     # add your code here
+    #intializing the similar_users_list with an empty list
+    similar_users_list=[]
+
+    user_i = user
+    #get expertise areas of main user
+    ei = user_i.expertise_area.all()
+
+    #number of expertise areas of main user: rank of Ei
+    num_ei = ei.count()
+
+
+    #outer loop: iteration through all users
+    for user_j in SocialNetworkUsers.objects.exclude(pk=user_i.pk): #removing user_i from users
+        similarity_score = 0
+        similarity_hits = 0
+        #inner loop: iteration through expertise area of our main user and checking for same expertise area as the main user
+        for area in ei:
+            #implement the formula in the inner
+            try:
+                fame_user_i = Fame.objects.get(user=user_i, expertise_area=area).fame_level.numeric_value
+                fame_user_j = Fame.objects.get(user=user_j, expertise_area=area).fame_level.numeric_value
+
+                if abs(fame_user_i - fame_user_j) <= 100:
+                    indicator = 1
+                else:
+                    indicator = 0
+
+                similarity_hits += int(abs(fame_user_i - fame_user_j) <= 100)
+
+
+            except Fame.DoesNotExist:
+                continue
+        #appending the user_j to the similar list if similarity_score>0
+
+        similarity_score = similarity_hits / num_ei if num_ei else 0
+        if similarity_score > 0 and user_j!=user_i:
+            #adding similarity field to user_j
+            user_j.similarity = similarity_score
+            similar_users_list.append(user_j)
+
+        # sort as required
+        similar_users_list.sort(
+            key=lambda u: (-u.similarity, -u.date_joined.timestamp())
+        )
+
+    return similar_users_list
+'''
+    qs = (
+        SocialNetworkUsers.objects
+        .exclude(pk=user.pk)  # drop the source user
+        .annotate(similarity=...)  # your similarity calculation here
+        .filter(similarity__gt=0)  # keep only non-zero
+        .order_by('-similarity', '-date_joined')  # ① similarity ↓ ② date_joined ↓
+    )
+'''
+
     #########################
 
