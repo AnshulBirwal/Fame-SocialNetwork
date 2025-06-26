@@ -379,35 +379,38 @@ def similar_users(user: SocialNetworkUsers):
     #outer loop: iteration through all users
     for user_j in SocialNetworkUsers.objects.exclude(pk=user_i.pk): #removing user_i from users
         similarity_score = 0
-        similarity_hits = 0
+        similarity = 0
         #inner loop: iteration through expertise area of our main user and checking for same expertise area as the main user
         for area in ei:
-            #implement the formula in the inner
+            #implement the formula in the inner loop
             try:
+                #getting the numeric value of the fame of the users in particular expertise area
                 fame_user_i = Fame.objects.get(user=user_i, expertise_area=area).fame_level.numeric_value
                 fame_user_j = Fame.objects.get(user=user_j, expertise_area=area).fame_level.numeric_value
 
+                #implementing the formula as mentioned in the project description
                 if abs(fame_user_i - fame_user_j) <= 100:
                     indicator = 1
                 else:
                     indicator = 0
 
-                similarity_hits += int(abs(fame_user_i - fame_user_j) <= 100)
+                #
+                similarity += int(abs(fame_user_i - fame_user_j) <= 100)
 
 
             except Fame.DoesNotExist:
                 continue
-        #appending the user_j to the similar list if similarity_score>0
 
-        similarity_score = similarity_hits / num_ei if num_ei else 0
-        if similarity_score > 0 and user_j!=user_i:
+        # appending the user_j to the similar_users_list if similarity_score>0
+        similarity_score = similarity / num_ei if num_ei else 0
+        if similarity_score > 0 and user_j!= user_i:
             #adding similarity field to user_j
             user_j.similarity = similarity_score
             similar_users_list.append(user_j)
 
-        # sort as required
+        # sort as required in the task
         similar_users_list.sort(
-            key=lambda u: (-u.similarity, -u.date_joined.timestamp())
+            key=lambda u: (-u.similarity, -u.date_joined.timestamp()) #timestamp converts date_joined into second for comparision compatibility
         )
 
     return similar_users_list

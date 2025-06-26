@@ -23,6 +23,8 @@ def timeline(request):
     if 'bullshitters_mode' not in request.session:
         request.session['community_mode'] = False
 
+    if 'similar_user_mode' not in request.session:
+        request.session['similar_user_mode'] = False
 
     is_community_mode = request.session['community_mode']  #read mode from session
     communities_joined = []
@@ -59,6 +61,7 @@ def timeline(request):
     # if keyword is not empty, use search method of API:
     if keyword and keyword != "":
         context = {
+            "similar_users": api.similar_users(user),
             "bullshitters": api.bullshitters(),
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
@@ -71,6 +74,7 @@ def timeline(request):
         }
     else:  # otherwise, use timeline method of API:
         context = {
+            "similar_users": api.similar_users(user),
             "bullshitters": api.bullshitters(),
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
@@ -151,4 +155,6 @@ def leave_community(request):
 @require_http_methods(["GET"])
 @login_required
 def similar_users(request):
-    raise NotImplementedError("Not implemented yet")
+    current = request.session.get("similar_users_mode", False)  # false is default
+    request.session["similar_users_mode"] = not current
+    return redirect(reverse("sn:timeline"))  # redirect back to timeline after toggling

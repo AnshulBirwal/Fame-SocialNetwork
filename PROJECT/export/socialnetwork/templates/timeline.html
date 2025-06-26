@@ -30,6 +30,17 @@
     </a>
     </div>
 
+        <!-- button to show similar_users -->
+    <div style="margin: 20px;">
+    <a href="{% url 'sn:similar_users' %}" class="btn btn-primary">  <! -- a is a link made into a form of a button-->
+        {% if request.session.similar_users_mode %} <! -- if similar_users mode is active-->
+            Hide similar_users
+        {% else %}
+            Show similar_users
+        {% endif %}
+    </a>
+    </div>
+
     <br>
     <div class="card"
          style="margin-bottom: 20px; border-color: white; width: 300px; margin-left: auto; margin-right: 40px;">
@@ -51,9 +62,24 @@
     <br>
     <br>
     <h3 style="margin-left: 40px">Timeline</h3>
+     <br>
 
 
-    <br>
+    <!-- Showing similar_users -->
+    {% if request.session.similar_users_mode %}  <! -- look at request and check if similar_users_mode is true or false -->
+  {% for users in similar_users.items %}  <! -- iterating over similar_users using .items to directly map keys and values -->
+    <ul>
+      {% for entry in users %}  <! -- iterating over bullshitters in that area -->
+        <li>
+          {{ entry.user}} <! -- displaying bullshitters' username. firstname and lastname -->
+        <br>
+        </li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <p>No similar_users found.</p>    <! -- info display if no bullshitters exist in some particular area -->
+  {% endfor %}
+{% endif %}
 
     <!-- Showing bullshitters -->
     {% if request.session.bullshitters_mode %}  <! -- look at request and check if bullshitters_mode is true or false -->
