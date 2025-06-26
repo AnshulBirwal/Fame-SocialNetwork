@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.functional import cached_property
 
 
-rnd.seed(42)
+rnd.seed(42)   #useful for deterministic randomness
 
 
 class ExpertiseAreas(models.Model):

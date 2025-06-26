@@ -21,8 +21,8 @@
     </div>
     <!-- button to show bullshitters -->
     <div style="margin: 20px;">
-    <a href="{% url 'sn:bullshitters' %}" class="btn btn-primary">
-        {% if request.session.bullshitters_mode %}
+    <a href="{% url 'sn:bullshitters' %}" class="btn btn-primary">  <! -- a is a link made into a form of a button-->
+        {% if request.session.bullshitters_mode %} <! -- if bullshitters mode is active-->
             Hide Bullshitters
         {% else %}
             Show Bullshitters
@@ -56,19 +56,19 @@
     <br>
 
     <!-- Showing bullshitters -->
-    {% if request.session.bullshitters_mode %}
-  {% for area, bullshitters_in_area in bullshitters.items %}
-    <h3>{{ area.label }}</h3>
+    {% if request.session.bullshitters_mode %}  <! -- look at request and check if bullshitters_mode is true or false -->
+  {% for area, bullshitters_in_area in bullshitters.items %}  <! -- iterating over bullshitters using .items to directly map keys and values -->
+    <h3>{{ area.label }}</h3>  <! -- heading of the display is area -->
     <ul>
-      {% for entry in bullshitters_in_area %}
+      {% for entry in bullshitters_in_area %}  <! -- iterating over bullshitters in that area -->
         <li>
-          {{ entry.user.username }} - {{ entry.user.first_name }} {{ entry.user.last_name }}
+          {{ entry.user.username }} - {{ entry.user.first_name }} {{ entry.user.last_name }} <! -- displaying bullshitters' username. firstname and lastname -->
         <br>
         </li>
       {% endfor %}
     </ul>
   {% empty %}
-    <p>No bullshitters found.</p>
+    <p>No bullshitters found.</p>    <! -- info display if no bullshitters exist in some particular area -->
   {% endfor %}
 {% endif %}
 

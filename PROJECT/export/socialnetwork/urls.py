@@ -11,6 +11,7 @@ urlpatterns = [
     path("api/posts", PostsListApiView.as_view(), name="posts_fulllist"),
     path("html/timeline", timeline, name="timeline"),
     path("html/toggle_community_mode", toggle_community_mode, name="toggle_community_mode"),
+    #linking bullshitters with the given urlpattern
     path("html/bullshitters", bullshitters, name="bullshitters"),
     path("html/join_community", join_community, name="join_community"),
     path("html/leave_community", leave_community, name="leave_community"),

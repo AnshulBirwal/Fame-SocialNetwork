@@ -13,15 +13,17 @@ class SocialNetworkUsers(FameUsers):
     """Users of the social network."""
 
     follows = models.ManyToManyField(
-        "self", symmetrical=False, related_name="followed_by"
+        "self", symmetrical=False, related_name="followed_by" #self means SocialNetworkUsers
+        #symmetrical=False: one user following another does not mean that the other user follows the first one
     )
     is_banned = models.BooleanField(default=False)
     # T4
     # use this member field to adapt the data model, DO NOT RENAME!
+    #creating a field-definition object using the constructor call models.ManyToManyField(...)
     communities  = models.ManyToManyField(
         ExpertiseAreas,
         blank=True,  # a user can have no area of expertise (need living proof?)
-        related_name="community_members" 
+        related_name="community_members" #represents the name of the reversed relation from communities to members (i.e. from members to communities)
     )
 
     def __str__(self):
