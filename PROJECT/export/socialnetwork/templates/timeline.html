@@ -19,6 +19,16 @@
             </button>
         </form>
     </div>
+    <!-- button to show bullshitters -->
+    <div style="margin: 20px;">
+    <a href="{% url 'sn:bullshitters' %}" class="btn btn-primary">
+        {% if request.session.bullshitters_mode %}
+            Hide Bullshitters
+        {% else %}
+            Show Bullshitters
+        {% endif %}
+    </a>
+    </div>
 
     <br>
     <div class="card"
@@ -41,6 +51,26 @@
     <br>
     <br>
     <h3 style="margin-left: 40px">Timeline</h3>
+
+    <br>
+
+    <!-- Showing bullshitters -->
+    {% if request.session.bullshitters_mode %}
+  {% for area, bullshitters_in_area in bullshitters.items %}
+    <h3>{{ area.label }}</h3>
+    <ul>
+      {% for entry in bullshitters_in_area %}
+        <li>
+          {{ entry.user.username }} - {{ entry.user.first_name }} {{ entry.user.last_name }}
+        <br>
+        </li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <p>No bullshitters found.</p>
+  {% endfor %}
+{% endif %}
+
 
     <!-- Part that is only for community mode -->
     {% if request.session.community_mode %}

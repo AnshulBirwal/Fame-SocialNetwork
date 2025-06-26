@@ -19,6 +19,9 @@ def timeline(request):
     # initialize community mode to False the first time in the session
     if 'community_mode' not in request.session:
         request.session['community_mode'] = False
+        #same for bullshitters mode
+    if 'bullshitters_mode' not in request.session:
+        request.session['community_mode'] = False
 
 
     is_community_mode = request.session['community_mode']  #read mode from session
@@ -51,9 +54,12 @@ def timeline(request):
     published = request.GET.get("published", True)
     error = request.GET.get("error", None)
 
+
+
     # if keyword is not empty, use search method of API:
     if keyword and keyword != "":
         context = {
+            "bullshitters": api.bullshitters(),
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
@@ -65,6 +71,7 @@ def timeline(request):
         }
     else:  # otherwise, use timeline method of API:
         context = {
+            "bullshitters": api.bullshitters(),
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
@@ -101,10 +108,13 @@ def unfollow(request):
 
 
 #T6
+#we will "toggle" bullshitters mode (the button either shows or hides the list
 @require_http_methods(["GET"])
 @login_required
 def bullshitters(request):
-    raise NotImplementedError("Not implemented yet")
+    current = request.session.get("bullshitters_mode", False)  # false is default
+    request.session["bullshitters_mode"] = not current
+    return redirect(reverse("sn:timeline"))  # redirect back to timeline after toggling
 
 
 #T7
