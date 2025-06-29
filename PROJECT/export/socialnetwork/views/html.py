@@ -19,16 +19,8 @@ def timeline(request):
     # initialize community mode to False the first time in the session
     if 'community_mode' not in request.session:
         request.session['community_mode'] = False
-        #same for bullshitters mode
-    if 'bullshitters_mode' not in request.session:
-        request.session['bullshitters_mode'] = False
-
-    if 'similar_users_mode' not in request.session:
-        request.session['similar_users_mode'] = False
 
     is_community_mode = request.session['community_mode']  #read mode from session
-    show_bullshitters_mode = request.session['bullshitters_mode']  # read mode from session
-    show_similar_users_mode = request.session['similar_users_mode']  # read mode from session
 
     communities_joined = []
     available_communities_not_joined = [] # by default empty
@@ -53,13 +45,6 @@ def timeline(request):
     #that it doesn't show the communities in standard mode
     #but for performance it will be better not to fill the communities in standard mode
 
-    bullshitters_dict={}
-    if show_bullshitters_mode: #getting the actual dictionary only if the user asked for it (better performance)
-        bullshitters_dict = api.bullshitters()
-
-    similar_users_list = []
-    if show_similar_users_mode:  # getting the actual list only if the user asked for it (better performance)
-        similar_users_list = api.similar_users(user)
 
     # get extra URL parameters:
     keyword = request.GET.get("search", "")
@@ -70,8 +55,6 @@ def timeline(request):
     # if keyword is not empty, use search method of API:
     if keyword and keyword != "":
         context = {
-            "similar_users": similar_users_list,
-            "bullshitters": bullshitters_dict,
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
@@ -83,8 +66,6 @@ def timeline(request):
         }
     else:  # otherwise, use timeline method of API:
         context = {
-            "similar_users": similar_users_list,
-            "bullshitters": bullshitters_dict,
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
@@ -124,9 +105,10 @@ def unfollow(request):
 @require_http_methods(["GET"])
 @login_required
 def bullshitters(request):
-    current = request.session.get("bullshitters_mode", False)  # false is default
-    request.session["bullshitters_mode"] = not current
-    return redirect(reverse("sn:timeline"))  # redirect back to timeline after toggling
+    context={
+            "bullshitters": api.bullshitters(),
+    }
+    return render(request, "bullshitters.html", context=context)
 
 
 #T7
@@ -160,6 +142,8 @@ def leave_community(request):
 @require_http_methods(["GET"])
 @login_required
 def similar_users(request):
-    current = request.session.get("similar_users_mode", False)  # false is default
-    request.session["similar_users_mode"] = not current
-    return redirect(reverse("sn:timeline"))  # redirect back to timeline after toggling
+    user = _get_social_network_user(request.user)
+    context = {
+        "similar_users": api.similar_users(user),
+    }
+    return render(request, "similar_users.html", context=context)

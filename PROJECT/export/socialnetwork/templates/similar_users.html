@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Similar users{% endblock %}
+
+{% block body %}
+    <!-- button to return to timeline -->
+    <div style="margin: 20px;">
+    <a href="{% url 'sn:timeline' %}" class="btn btn-primary">  {# a is a link made into a form of a button #}
+        Back to Timeline
+    </a>
+    </div>
+
+<!-- Showing similar_users -->
+        <h6 style="margin-left: 40px">
+        The users are sorted from the most similar to you to the least similar.
+        Note: only users with non-zero similarity score are shown.
+        </h6>
+        <h3 style="margin-left: 40px">Users similar to me:</h3>
+    {% for user in similar_users %}  <! -- iterating over similar_users-->
+        <li style="margin-left: 40px">
+          {{ user.username }} - {{ user.first_name }} {{ user.last_name }} <! -- displaying similar_users' username. firstname and lastname -->
+            <br>
+        </li>
+        {% empty %}
+            <p style="margin-left: 40px">No similar_users found.</p>    <! -- info display if no similar_users exist -->
+    {% endfor %}
+    <br><br>
+    
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Bullshitters{% endblock %}
+
+{% block body %}
+    {# button to return to timeline #}
+    <div style="margin: 20px;">
+    <a href="{% url 'sn:timeline' %}" class="btn btn-primary">  {# a is a link made into a form of a button #}
+            Back to Timeline
+    </a>
+    </div>
+
+    {# Showing bullshitters#}
+    <h3 style="margin-left: 40px">Bullshitters:</h3>
+        {% for area, bullshitters_in_area in bullshitters.items %}  <! -- iterating over bullshitters using .items to directly map keys and values -->
+            <h4 style="margin-left: 40px">{{ area.label }}</h4>  <! -- heading of the display is area -->
+            <ul>
+            {% for entry in bullshitters_in_area %}  <! -- iterating over bullshitters in that area -->
+                <li style="margin-left: 40px">
+                {{ entry.user.username }} - {{ entry.user.first_name }} {{ entry.user.last_name }} <! -- displaying bullshitters' username. firstname and lastname -->
+                <br>
+                </li>
+            {% endfor %}
+            </ul>
+            {% empty %} {# exception handling #}
+            <p style="margin-left: 40px">No bullshitters found.</p>    <! -- info display if no bullshitters exist in some particular area -->
+        {% endfor %}
+    <br><br>
+
+{% endblock %}
