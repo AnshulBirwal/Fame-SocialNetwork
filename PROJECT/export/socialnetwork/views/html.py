@@ -61,9 +61,6 @@ def timeline(request):
     if show_similar_users_mode:  # getting the actual list only if the user asked for it (better performance)
         similar_users_list = api.similar_users(user)
 
-    print("To show similar?", show_similar_users_mode)
-    print("Users: ", len(similar_users_list))
-
     # get extra URL parameters:
     keyword = request.GET.get("search", "")
     published = request.GET.get("published", True)
