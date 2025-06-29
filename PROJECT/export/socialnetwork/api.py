@@ -168,78 +168,33 @@ def submit_post(
 
     #the idea is for all expertise areas in the post (there are 2 of them normally) check if any of them is
     #among user's negative areas. If yes, don't publish
-    # _no_negative_areas = True
-    # user, _fame_of_user = fame(user)          #fame function returns user and their fames (fame contains user, expertise_area and fame_level)
-    #                                    #_fame_of_user here stores the QuerySet of all Fame rows belonging to that user
-    # negative_fames = _fame_of_user.filter(fame_level__numeric_value__lt=0)  #fame_level is a table
-    #                                                                    #numeric_value is an attribute of fame level
-    #                                                                    #lt=0 is the selection condition
-    #                                    #negative_fame has an instance/object of fame with all the fields
-    # _negative_expertise_areas_of_user = [fame_entry.expertise_area for fame_entry in negative_fames]   #we are only interested in expertise areas from fames
-    #                                 # _negative_expertise_areas_of_user is a list of expertise areas in which the user currently has negative fame
-    # _expertise_areas_without_levels = [entry['expertise_area'] for entry in _expertise_areas]          #from areas from post we also only choose areas
-    #                                   #entry is a loop variable
-    # for area in _expertise_areas:
-    #     if area['expertise_area'] in _negative_expertise_areas_of_user:
-    #         _no_negative_areas = False
+    
 
-    # post.published = post.published and _no_negative_areas  # modified condition of publishing based on T1
+    '''
+    T2 Change api.submit_post to adjust the fame profile of users if they submit a post with a negative
+    truth rating, but only for the expertise area found for the post that has a negative truth rating:
 
-    # """
-    # T2 Change api.submit_post to adjust the fame profile of users if they submit a post with a negative
-    # truth rating, but only for the expertise area found for the post that has a negative truth rating:
+    T2a If the expertise area is already contained in the user’s fame profile (with any fame level), lower
+    the fame to the next possible level.
 
-    #     T2a If the expertise area is already contained in the user’s fame profile (with any fame level), lower
-    #     the fame to the next possible level.
+    T2b If the expertise area is not contained, simply add an entry in the user’s fame profile with fame
+    level “Confuser” (hint: negative fame and take a look at famesocialnetwork/fakedata.py).
 
-    #     T2b If the expertise area is not contained, simply add an entry in the user’s fame profile with fame
-    #     level “Confuser” (hint: negative fame and take a look at famesocialnetwork/fakedata.py).
+    T2c If you cannot lower the existing fame level for that expertise area any further, ban the user from
+    the social network by setting the field is_active in model FameUsers to False disallowing
+    him/her to ever login again, logging out the user if he or she is logged in, and unpublishing all
+    his/her posts (without deleting them from the database).
+    '''
 
-    #     T2c If you cannot lower the existing fame level for that expertise area any further, ban the user from
-    #     the social network by setting the field is_active in model FameUsers to False disallowing
-    #     him/her to ever login again, logging out the user if he or she is logged in, and unpublishing all
-    #     his/her posts (without deleting them from the database)
-    # """
-
-    # #we need to lower the level only if at least one area is negative
-    # if _at_least_one_expertise_area_contains_bullshit:
-    #     #_at_least_super_pro = FameLevels.objects.get(name='Super Pro')
-    #     for area in _expertise_areas: #area is kind of a key:value of ex
-    #         _truth_rating_of_area = area['truth_rating']
-    #         if _truth_rating_of_area: #if it is not none (aka if it is not unknown)
-    #             if area['truth_rating'].numeric_value<0:
-    #                 try:           #if the user already has this area in the profile
-    #                     _fame_to_update = Fame.objects.get(expertise_area=area['expertise_area'], user=post.author)   #getting the fame we need
-    #                     try:       #if possible to lower the level
-    #                         _new_fame_level = _fame_to_update.fame_level.get_next_lower_fame_level()
-    #                         _fame_to_update.fame_level = _new_fame_level
-
-    #                         super_pro = FameLevels.objects.get(name="Super Pro")  #getting the value of Super Pro in a variable
-    #                         if _new_fame_level.numeric_value < super_pro.numeric_value: #if the _new_fame_level is smaller than Super Pro
-    #                             user.communities.remove(area['expertise_area'])   #remove the user from the community
-
-
-    #                     except ValueError:    #if impossible to lower the level BAN (since get_next_lower_fame_level() will raise the error)
-    #                         user.is_active=False
-    #                         user.save()
-    #                         redirect_to_logout=True
-    #                         #unpublish all the posts of the user without deleting from db:
-    #                         _posts_to_unpublish = Posts.objects.filter(author=user).update(published=False)
-
-    #                     _fame_to_update.save() #saving these changes to the fame of the user
-
-    #                 except Fame.DoesNotExist:    #if the fame doesn't exist/ user does not have this area (the get method throws an exception)
-    #                     _new_fame = Fame.objects.create(expertise_area=area['expertise_area'], #constructor creating a new fame object #1. expertise area = constructor 2. expertise area = post
-    #                                      user=post.author,
-    #                                      fame_level=FameLevels.objects.get(name='Confuser'))
-
-    #                     _new_fame.save()  #saving the changes made to fame of the particular expertise area of the user
+    
     for area in _expertise_areas:
+        # t1
         expertise_area = area["expertise_area"]
         # check if user has a negative fame level in this expertise area, then we don't publish the post
         if Fame.objects.filter(user=user, expertise_area=expertise_area, fame_level__numeric_value__lt=0).exists():
             post.published = False
         
+        # t2
         truth_rating = area.get("truth_rating")
         if truth_rating and area.get("truth_rating").numeric_value < 0:
             try:
