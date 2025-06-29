@@ -21,8 +21,8 @@
     </div>
     <!-- button to show bullshitters -->
     <div style="margin: 20px;">
-    <a href="{% url 'sn:bullshitters' %}" class="btn btn-primary">  <! -- a is a link made into a form of a button-->
-        {% if request.session.bullshitters_mode %} <! -- if bullshitters mode is active-->
+    <a href="{% url 'sn:bullshitters' %}" class="btn btn-primary">  {# a is a link made into a form of a button #}
+        {% if request.session.bullshitters_mode %} {# if bullshitters mode is active #}
             Hide Bullshitters
         {% else %}
             Show Bullshitters
@@ -32,11 +32,11 @@
 
         <!-- button to show similar_users -->
     <div style="margin: 20px;">
-    <a href="{% url 'sn:similar_users' %}" class="btn btn-primary">  <! -- a is a link made into a form of a button-->
-        {% if request.session.similar_users_mode %} <! -- if similar_users mode is active-->
-            Hide similar_users
+    <a href="{% url 'sn:similar_users' %}" class="btn btn-primary">  {# a is a link made into a form of a button #}
+        {% if request.session.similar_users_mode %} {# if similar_users mode is active #}
+            Hide similar users
         {% else %}
-            Show similar_users
+            Show similar users
         {% endif %}
     </a>
     </div>
@@ -64,39 +64,39 @@
     <h3 style="margin-left: 40px">Timeline</h3>
      <br>
 
-
-    <!-- Showing similar_users -->
-    {% if request.session.similar_users_mode %}  <! -- look at request and check if similar_users_mode is true or false -->
-  {% for users in similar_users.items %}  <! -- iterating over similar_users using .items to directly map keys and values -->
-    <ul>
-      {% for entry in users %}  <! -- iterating over bullshitters in that area -->
-        <li>
-          {{ entry.user}} <! -- displaying bullshitters' username. firstname and lastname -->
-        <br>
-        </li>
-      {% endfor %}
-    </ul>
-  {% empty %}
-    <p>No similar_users found.</p>    <! -- info display if no bullshitters exist in some particular area -->
-  {% endfor %}
-{% endif %}
-
     <!-- Showing bullshitters -->
     {% if request.session.bullshitters_mode %}  <! -- look at request and check if bullshitters_mode is true or false -->
-  {% for area, bullshitters_in_area in bullshitters.items %}  <! -- iterating over bullshitters using .items to directly map keys and values -->
-    <h3>{{ area.label }}</h3>  <! -- heading of the display is area -->
-    <ul>
-      {% for entry in bullshitters_in_area %}  <! -- iterating over bullshitters in that area -->
-        <li>
-          {{ entry.user.username }} - {{ entry.user.first_name }} {{ entry.user.last_name }} <! -- displaying bullshitters' username. firstname and lastname -->
+        <h3 style="margin-left: 40px">Bullshitters:</h3>
+        {% for area, bullshitters_in_area in bullshitters.items %}  <! -- iterating over bullshitters using .items to directly map keys and values -->
+            <h4 style="margin-left: 40px">{{ area.label }}</h4>  <! -- heading of the display is area -->
+            <ul>
+            {% for entry in bullshitters_in_area %}  <! -- iterating over bullshitters in that area -->
+                <li style="margin-left: 40px">
+                {{ entry.user.username }} - {{ entry.user.first_name }} {{ entry.user.last_name }} <! -- displaying bullshitters' username. firstname and lastname -->
+                <br>
+                </li>
+            {% endfor %}
+            </ul>
+            {% empty %} {# exception handling #}
+            <p style="margin-left: 40px">No bullshitters found.</p>    <! -- info display if no bullshitters exist in some particular area -->
+        {% endfor %}
+    {% endif %}
+
+    <!-- Showing similar_users -->
+
+    {% if request.session.similar_users_mode %}  <! -- look at request and check if similar_users_mode is true or false -->
+        <h3 style="margin-left: 40px">Users similar to me:</h3>
+        {% for user in similar_users %}  <! -- iterating over similar_users-->
+        <li style="margin-left: 40px">
+          {{ user.username }} - {{ user.first_name }} {{ user.last_name }} <! -- displaying similar_users' username. firstname and lastname -->
         <br>
         </li>
-      {% endfor %}
-    </ul>
   {% empty %}
-    <p>No bullshitters found.</p>    <! -- info display if no bullshitters exist in some particular area -->
+    <p style="margin-left: 40px">No similar_users found.</p>    <! -- info display if no similar_users exist -->
   {% endfor %}
 {% endif %}
+
+
 
 
     <!-- Part that is only for community mode -->

@@ -21,12 +21,15 @@ def timeline(request):
         request.session['community_mode'] = False
         #same for bullshitters mode
     if 'bullshitters_mode' not in request.session:
-        request.session['community_mode'] = False
+        request.session['bullshitters_mode'] = False
 
-    if 'similar_user_mode' not in request.session:
-        request.session['similar_user_mode'] = False
+    if 'similar_users_mode' not in request.session:
+        request.session['similar_users_mode'] = False
 
     is_community_mode = request.session['community_mode']  #read mode from session
+    show_bullshitters_mode = request.session['bullshitters_mode']  # read mode from session
+    show_similar_users_mode = request.session['similar_users_mode']  # read mode from session
+
     communities_joined = []
     available_communities_not_joined = [] # by default empty
     if is_community_mode:
@@ -47,9 +50,19 @@ def timeline(request):
                     available_communities_not_joined.append(potential_community_name)
     #if standard mode, the communities lists will stay empty.
     #We could still fill them with respective communities because we built timeline.html the way
-    #sthat it doesn't show the communities in standard mode
+    #that it doesn't show the communities in standard mode
     #but for performance it will be better not to fill the communities in standard mode
 
+    bullshitters_dict={}
+    if show_bullshitters_mode: #getting the actual dictionary only if the user asked for it (better performance)
+        bullshitters_dict = api.bullshitters()
+
+    similar_users_list = []
+    if show_similar_users_mode:  # getting the actual list only if the user asked for it (better performance)
+        similar_users_list = api.similar_users(user)
+
+    print("To show similar?", show_similar_users_mode)
+    print("Users: ", len(similar_users_list))
 
     # get extra URL parameters:
     keyword = request.GET.get("search", "")
@@ -57,12 +70,11 @@ def timeline(request):
     error = request.GET.get("error", None)
 
 
-
     # if keyword is not empty, use search method of API:
     if keyword and keyword != "":
         context = {
-            "similar_users": api.similar_users(user),
-            "bullshitters": api.bullshitters(),
+            "similar_users": similar_users_list,
+            "bullshitters": bullshitters_dict,
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
@@ -74,8 +86,8 @@ def timeline(request):
         }
     else:  # otherwise, use timeline method of API:
         context = {
-            "similar_users": api.similar_users(user),
-            "bullshitters": api.bullshitters(),
+            "similar_users": similar_users_list,
+            "bullshitters": bullshitters_dict,
             "communities_joined": communities_joined,
             "available_communities_not_joined": available_communities_not_joined,
             "posts": PostsSerializer(
@@ -86,8 +98,6 @@ def timeline(request):
                 ),
                 many=True,
             ).data,
-
-
             "searchkeyword": "",
             "error": error,
             "followers": list(api.follows(user).values_list('id', flat=True)),
@@ -148,8 +158,6 @@ def leave_community(request):
     user = _get_social_network_user(request.user)
     api.leave_community(user, community)
     return redirect(reverse("sn:timeline"))
-
-
 
 #T8
 @require_http_methods(["GET"])
