@@ -1,10 +1,9 @@
 # Fame-Social-Network
 
 ## About this project
-This is a fork of [@thinkncritique/BDE-Project-Social-Network](https://github.com/thinkncritique/BDE-Project-Social-Network).  
+Project created collaboratively during Big Data Engineering course. [@thinkncritique/BDE-Project-Social-Network](https://github.com/thinkncritique/BDE-Project-Social-Network).  
 I contributed mainly to the backend development (API integration and database models).
 
-Project created collaboratively during Big Data Engineering course.
 
 ## How to Run
 
